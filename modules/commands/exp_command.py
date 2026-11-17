@@ -1,6 +1,7 @@
 from telegram import Update
 from telegram.ext import ContextTypes
 from modules import leveling_system
+from user import XP_BASE
 
 
 async def get_user_exp(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -13,7 +14,7 @@ async def get_user_exp(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     user = leveling_system.users[user_id]
-    xp_to_next = (user.level * 10) - user.exp
+    xp_to_next = (user.level * XP_BASE) - user.exp
     await update.message.reply_text(
-        f'XP: {user.exp}, Рівень: {user.level}, {xp_to_next} XP до наступного рівня.'
+        f'🎖 {user.title}\nXP: {user.exp}, Рівень: {user.level}, {xp_to_next} XP до наступного рівня.'
     )
