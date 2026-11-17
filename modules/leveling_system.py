@@ -1,5 +1,6 @@
 from user import User
-from data_manager import save_data, load_data
+from modules.data_manager import save_data, load_data
+
 users = {}
 
 xp_table = {
@@ -9,23 +10,39 @@ xp_table = {
     'voice': -4
 }
 
-#Load existing users
-
-_loaded_data = load_data();
-
-for uid, info in _loaded_data.items():
+# Load existing users (older saves lack the newer fields, User() defaults cover them)
+for uid, info in load_data().items():
     users[int(uid)] = User(int(uid), info["name"])
-    users[int(uid)].level = info["level"]
-    users[int(uid)].exp = info["exp"]
+    vars(users[int(uid)]).update(info)
+
+
+def get_user(tg_user):
+    """Return the stored User for a Telegram user, creating it if needed."""
+    if tg_user.id not in users:
+        users[tg_user.id] = User(tg_user.id, tg_user.first_name)
+    user = users[tg_user.id]
+    user.name = tg_user.first_name  # keep up with name changes
+    return user
+
+
+def save():
+    save_data({uid: vars(u) for uid, u in users.items()})
+
+
+def award(user, amount):
+    """Apply an XP change. Returns a level-change announcement, or None."""
+    old_title = user.title
+    result = user.exp_handler(amount)
+    if result == "level_up":
+        promotion = f" Нове звання: {user.title}!" if user.title != old_title else ""
+        return f"🎉 {user.name} досягнув/ла {user.level} рівня!{promotion}"
+    if result == "level_down":
+        return f"⬇️ {user.name} впав/ла до {user.level} рівня..."
+    return None
+
 
 async def handle_message(update, context):
-    user_id = update.effective_user.id
-    name = update.effective_user.first_name 
-
-    if user_id not in users:
-        users[user_id] = User(user_id, name)
-
-    user = users[user_id]
+    user = get_user(update.effective_user)
 
     # Detect message type and assign XP
     exp_gain = next(
@@ -33,13 +50,8 @@ async def handle_message(update, context):
         0
     )
 
-    result = user.exp_handler(exp_gain)
-    
-    #Save user
-    save_data({uid: vars(u) for uid, u in users.items()})
+    note = award(user, exp_gain)
+    save()
 
-    # Send feedback
-    if result == "level_up":
-        await update.message.reply_text(f"🎉 {user.name} досягнув/ла {user.level} рівня!")
-    elif result == "level_down":
-        await update.message.reply_text(f"⬇️ {user.name} впав/ла до {user.level} рівня...")
+    if note:
+        await update.message.reply_text(note)

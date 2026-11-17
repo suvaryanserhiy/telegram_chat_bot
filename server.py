@@ -9,13 +9,9 @@ flask_app = Flask(__name__)
 def home():
     return "🤖 Telegram bot is running!"
 
-def run_bot():
-    app.run_polling()
-
 if __name__ == "__main__":
-    # Runs bot in a separate thread
-    Thread(target=run_bot).start()
-
-    # Run Flask on port Render expects
+    # Flask goes in the background thread: the bot's polling loop needs the main thread for its signal handlers
     port = int(os.environ.get("PORT", 10000))
-    flask_app.run(host="0.0.0.0", port=port)
+    Thread(target=flask_app.run, kwargs={"host": "0.0.0.0", "port": port}, daemon=True).start()
+
+    app.run_polling()

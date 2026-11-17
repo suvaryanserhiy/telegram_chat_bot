@@ -111,8 +111,14 @@ python server.py
 
 | Command | Description |
 |---------|-------------|
-| `/start` | Initialize the bot and receive a welcome message |
-| `/exp` | Check your current XP, level, and XP needed for the next level |
+| `/start`, `/help` | Welcome message and command list |
+| `/exp` | Your XP, level, Cossack rank and XP needed for the next level |
+| `/top` | Top 10 users by total XP |
+| `/daily` | Daily bonus 5–15 XP, plus +2 XP per day of streak (up to 7 days, Kyiv time) |
+| `/duel [stake]` | Reply to someone's message to challenge them; they accept or decline with a button, winner takes the stake (1–100 XP, default 10) |
+| `/quiz` | Quiz about Ukraine (group chats only, every 2 min); first correct answer gets +10 XP |
+
+Ranks by level: Джура (1), Козак (3), Десятник (5), Хорунжий (8), Осавул (12), Сотник (17), Полковник (23), Гетьман (30).
 
 ### Command Examples
 
